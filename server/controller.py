@@ -1,23 +1,29 @@
-from server.utils import *
+from utils import *
 from fastapi import UploadFile
 import os
 import sys
 from abc import ABC, abstractmethod
-from typing import Generator
+from typing import Generator, List
+import pandas as pd
 
 if not os.path.exists(UPLOAD_DIRECTORY):
     os.makedirs(UPLOAD_DIRECTORY)
 
 def choose_controller(file_type : FileType):
     if file_type == FileType.TEXT:
-        return TXTController
+        return TXTController()
     
+
+class ParsingError(Exception):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
 
 class FileController (ABC):
 
     def __init__(self):
         pass
 
+    @staticmethod
     async def save_file(file: UploadFile, file_location: str):
         file_size = 0
         with open(file_location, "wb") as buffer:
@@ -34,12 +40,20 @@ class FileController (ABC):
     @abstractmethod
     def cut_file(self, filename: str) -> Generator:
         pass
+
+    @abstractmethod
+    def parse(self, file_content) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def process_cut(self, df: pd.DataFrame):
+        pass
     
 
-class TXTController():
+class TXTController(FileController):
 
     def __init__(self):
-        super.__init__()
+        super().__init__()
         self.separator: str = None 
 
     def _find_separator_txt(self, filename: str):
@@ -87,3 +101,22 @@ class TXTController():
 
                 current_lines.append(line)
                 current_size += sys.getsizeof(line)
+            if current_size > 0:
+                yield current_lines
+
+    def parse(self, file_content: List[str]) -> pd.DataFrame:
+        try:
+            data = [line.split() for line in file_content]
+        except Exception as e:
+            raise ParsingError('Parsing file went wrong')
+        data = pd.DataFrame(data)
+        
+        # sprawdzić jak to działa
+        return data
+    
+    def process_cut(self, df: pd.DataFrame):
+        a = 2
+        b = a
+
+
+    

@@ -5,12 +5,20 @@ from fastapi import UploadFile, HTTPException
 from typing import List
 from utils import FileType
 
-
+class ParsingError(Exception):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
 
 class Parser:
-
+    
     def __init__(self, file_type):
-        self.file_type : FileType= file_type
+        self.parse: function = None
+        if self.file_type == FileType.CSV:
+            self._parse = self._parse_csv
+        elif self.file_type == FileType.JSON:
+            self._parse = self._parse_json
+        elif self.file_type == FileType.TEXT:
+            self._parse = self._parse_txt
 
     @staticmethod
     def _parse_txt(file_content: List[str]) -> pd.DataFrame:
@@ -28,14 +36,9 @@ class Parser:
         return data
 
     def parse(self, file_content):
-
-        if self.file_type == FileType.CSV:
-            data = self._parse_csv(file_content)
-        elif self.file_type == FileType.JSON:
-            data = self._parse_json(file_content)
-        elif self.file_type == FileType.TEXT:
-            data = self._parse_txt(file_content)
-        else:
-            raise ImportError
-
+        try:
+            self._parse(file_content)
+        except Exception as e:
+            raise ParsingError(str(e))
+        
     

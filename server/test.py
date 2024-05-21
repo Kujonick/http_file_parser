@@ -25,12 +25,26 @@
 # # Uruchomienie funkcji głównej
 # asyncio.run(main())
 
-def a():
-    for i in range(5):
-        yield i
+import time
+n = 10**8
+# Przypadek 1: Pętla z try wewnątrz
+start = time.time()
+for i in range(n):
+    try:
+        if i % n == 0:
+            raise ValueError
+    except ValueError:
+        pass
+end = time.time()
+print(f'Pętla z try wewnątrz: {end - start} s')
 
-def b():
-    return a()
-
-for i in b():
-    print(i)
+# Przypadek 2: Try z pętlą wewnątrz
+start = time.time()
+try:
+    for i in range(n):
+        if i % n == 0:
+            raise ValueError
+except ValueError:
+    pass
+end = time.time()
+print(f'Try z pętlą wewnątrz: {end - start} s')
