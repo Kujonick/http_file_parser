@@ -3,6 +3,7 @@ import os
 import shutil
 from utils import *
 from controller import FileController, choose_controller, ParsingError
+from data import Summary
 app = FastAPI()
 
 _file_translation = {
@@ -29,7 +30,12 @@ async def upload_file(file: UploadFile = File(...)):
         file_location = os.path.join(UPLOAD_DIRECTORY, file.filename)
         await file_controller.save_file(file, file_location)
 
-        for batch in file_controller.cut_file(file_location):
+        data_summary = Summary()
+
+        batch_generator = file_controller.cut_file(file_location)
+        first_batch = next(batch_generator)
+        
+        for batch in batch_generator:
             data = file_controller.parse(batch)
             print(data)
 
