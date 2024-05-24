@@ -105,6 +105,8 @@ class _NumericColumn(_Column):
                     SS_w = SSa + SSb + (n_a*n_b)/ (n_a+n_b) * (X_a - X_b)**2
                     self.var = SS_w / (n_a + n_b - 1) 
 
+                    print(self.mean)
+
         super().update(data, first)
         
     

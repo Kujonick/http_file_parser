@@ -28,6 +28,9 @@ class FileController (ABC):
 
     @staticmethod
     async def save_file(file: UploadFile, file_location: str):
+        '''
+        function to save file from upcomming HTTP POST call
+        '''
         file_size = 0
         with open(file_location, "wb") as buffer:
             for chunk in iter(lambda: file.file.read(MAX_BATCH_SIZE), b""):
@@ -40,22 +43,25 @@ class FileController (ABC):
         return file_size
     
     @abstractmethod
-    def cut_file(self, filename: str) -> Generator:
+    def _cut_file(self, filename: str) -> Generator:
         pass
 
     @abstractmethod
-    def parse(self, file_content) -> pd.DataFrame:
+    def _parse(self, file_content) -> pd.DataFrame:
         pass
 
     def process_file(self, file_location: str, data_summary: Summary):
+        '''
+        function taking file location and cutting it on smaller batches to analyze
+        '''
 
-        batch_generator = self.cut_file(file_location)
+        batch_generator = self._cut_file(file_location)
         first_batch = next(batch_generator)
-        data = self.parse(first_batch)
+        data = self._parse(first_batch)
         self._process_first_batch(data, data_summary)
 
         for batch in batch_generator:
-            data = self.parse(batch)
+            data = self._parse(batch)
             self._process_batch(data, data_summary)
 
     @abstractmethod
@@ -74,6 +80,9 @@ class TXTController(FileController):
         self.separator: str = None 
 
     def _find_separator_txt(self, filename: str):
+        '''
+        specifies the separator used in txt file inbetween values
+        '''
 
         def change_line_to_dict(line):
             chars = {c : 0 for c in line}
@@ -106,7 +115,7 @@ class TXTController(FileController):
         raise TypeError("Seperator not found in file")
 
 
-    def cut_file(self, filename: str):
+    def _cut_file(self, filename: str):
         with open(filename, "r", encoding='utf-8') as f:
             current_size = 0
             current_lines = []
@@ -121,7 +130,7 @@ class TXTController(FileController):
             if current_size > 0:
                 yield current_lines
 
-    def parse(self, file_content: List[str]) -> pd.DataFrame:
+    def _parse(self, file_content: List[str]) -> pd.DataFrame:
         try:
             data = [line.split() for line in file_content]
             for row in data:
