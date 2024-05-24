@@ -36,5 +36,6 @@
 
 import pandas as pd
 
-data = pd.DataFrame({'a' : [ 1, 2, 3], 'b' : ['c', 'd', 'e']})
-print(data['a'].__class__.__name__)
+data = pd.DataFrame({'a' : [ 1, 2, 3], 'b' : ['c', 1, 2]})
+for column in data:
+    print(data[column])

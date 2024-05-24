@@ -25,19 +25,18 @@ async def upload_file(file: UploadFile = File(...)):
 
     try:
         file_type = find_file_type(file)
-        file_controller = choose_controller(file_type)
+        file_controller: FileController= choose_controller(file_type)
 
         file_location = os.path.join(UPLOAD_DIRECTORY, file.filename)
         await file_controller.save_file(file, file_location)
 
-        data_summary = Summary()
+        data_summary = Summary(file_type)
 
-        batch_generator = file_controller.cut_file(file_location)
-        first_batch = next(batch_generator)
+        file_controller.process_file(file_location, data_summary)
+
+        result = data_summary.to_dict()
         
-        for batch in batch_generator:
-            data = file_controller.parse(batch)
-            print(data)
+        return result
 
 
     except MemoryError as e: 
